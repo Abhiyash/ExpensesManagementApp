@@ -30,9 +30,7 @@ public class FileParsingService {
             for (CSVRecord record : records) {
                 bankStatementDetailsList.add(new BankStatementDetails(LocalDate.parse(record.get(0).trim(),dateTimeFormatter),record.get(1).trim(),"","",Double.parseDouble(record.get(3).trim()),Double.parseDouble(record.get(4).trim()),Double.parseDouble(record.get(6).trim())));
             }
-            bankStatementDetailsList.forEach(System.out::println);
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
+
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

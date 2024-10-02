@@ -23,6 +23,8 @@ public class ExpensesManagementApplicationMain {
         applicationContext =  SpringApplication.run(ExpensesManagementApplicationMain.class,args);
         List<BankStatementDetails> bankStatementDetailsList = fileParsingService.parseInputFiles();
         classificationService.classify(bankStatementDetailsList);
+        bankStatementDetailsList.forEach(System.out::println);
+
     }
     public static void displayAllBeans() {
         String[] allBeanNames = applicationContext.getBeanDefinitionNames();
