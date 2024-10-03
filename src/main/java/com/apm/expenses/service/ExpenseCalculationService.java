@@ -2,6 +2,7 @@ package com.apm.expenses.service;
 
 import com.apm.expenses.model.BankStatementDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 
 import java.util.List;
 
@@ -12,7 +13,7 @@ public class ExpenseCalculationService {
         for (BankStatementDetails bankStatement : bankStatementDetailsList) {
             String category = bankStatement.getCategory();
             switch (category){
-                    case "Need":
+                    case "Needs":
                         needsTotal += bankStatement.getDebitAmount();
                         break;
                     case "Wants":
@@ -22,24 +23,35 @@ public class ExpenseCalculationService {
                         investmentTotal+= bankStatement.getDebitAmount();
                         break;
                 default:
-                    otherTotal += bankStatement.getDebitAmount();
+                    if (ObjectUtils.isEmpty(bankStatement.getSubCategory())){
+                        otherTotal += bankStatement.getDebitAmount();
+                    }
                     break;
             }
             String subCategory = bankStatement.getSubCategory();
             switch (subCategory){
-                    case "Eating":
+                    case "Eating_Outside":
                         eatingOutsideTotal += bankStatement.getDebitAmount();
                         break;
-                    case  "VegetableGrocery":
+                    case  "Vegetable_And_Groceries":
                         vegetableGroceryTotal += bankStatement.getDebitAmount();
                         break;
-                    case "DoctorMedicie":
+                    case "Doctor_Medicine":
                         doctorMedicieTotal += bankStatement.getDebitAmount();
                         break;
                 default:
-                    otherTotal+= bankStatement.getDebitAmount();
+                    if(ObjectUtils.isEmpty(bankStatement.getCategory())){
+                        otherTotal+= bankStatement.getDebitAmount();
+                    }
                     break;
             }
         }
+        System.out.println("needsTotal : " + needsTotal);
+        System.out.println("wantedTotal : " + wantedTotal);
+        System.out.println("investmentTotal : " + investmentTotal);
+        System.out.println("eatingOutsideTotal : " + eatingOutsideTotal);
+        System.out.println("vegetableGroceryTotal : " + vegetableGroceryTotal);
+        System.out.println("doctorMedicieTotal : " + doctorMedicieTotal);
+        System.out.println("otherTotal : " + otherTotal);
     }
 }
