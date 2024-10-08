@@ -1,5 +1,6 @@
 package com.apm.expenses.service;
 
+import com.apm.expenses.config.MongoConfig;
 import com.apm.expenses.model.BankStatementDetails;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
@@ -8,6 +9,7 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
@@ -19,7 +21,14 @@ import java.util.Locale;
 
 @Service
 public class FileParsingService {
+    private final MongoTemplate mongoTemplate;
+
     private List<BankStatementDetails> bankStatementDetailsList = new ArrayList<BankStatementDetails>();
+
+    public FileParsingService(){
+        MongoConfig mongoConfig = new MongoConfig();
+        mongoTemplate = mongoConfig.mongoTemplate();
+    }
 
     public List<BankStatementDetails> parseInputFiles() {
         List<BankStatementDetails> bankStatementDetailsList = new ArrayList<BankStatementDetails>();
@@ -32,7 +41,15 @@ public class FileParsingService {
             Iterable<CSVRecord> records = csvFormat.parse(reader);
 
             for (CSVRecord record : records) {
-                bankStatementDetailsList.add(new BankStatementDetails(LocalDate.parse(record.get(0).trim(),dateTimeFormatter),record.get(1).trim(),"","",Double.parseDouble(record.get(3).trim()),Double.parseDouble(record.get(4).trim()),Double.parseDouble(record.get(6).trim())));
+                BankStatementDetails bankStatementDetails = new BankStatementDetails();
+                bankStatementDetails.setTransactionDate(LocalDate.parse(record.get(0).trim(),dateTimeFormatter));
+                bankStatementDetails.setDescription(record.get(1).trim());
+                bankStatementDetails.setDebitAmount(Double.parseDouble(record.get(3).trim()));
+                bankStatementDetails.setCreditAmount(Double.parseDouble(record.get(4).trim()));
+                bankStatementDetails.setClosingBalance(Double.parseDouble(record.get(6).trim()));
+                bankStatementDetails.setSubCategory("");
+                bankStatementDetails.setCategory("");
+                bankStatementDetailsList.add(bankStatementDetails);
             }
 
         } catch (IOException e) {

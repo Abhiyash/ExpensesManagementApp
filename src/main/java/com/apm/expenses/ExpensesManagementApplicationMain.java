@@ -4,7 +4,6 @@ import com.apm.expenses.model.BankStatementDetails;
 import com.apm.expenses.service.ClassificationService;
 import com.apm.expenses.service.ExpenseCalculationService;
 import com.apm.expenses.service.FileParsingService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
@@ -12,10 +11,10 @@ import org.springframework.context.ApplicationContext;
 import java.io.IOException;
 import java.util.List;
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = "com.apm.expenses")
+
 public class ExpensesManagementApplicationMain {
     static ApplicationContext applicationContext;
-
 
     static FileParsingService fileParsingService = new FileParsingService();
 
@@ -29,6 +28,7 @@ public class ExpensesManagementApplicationMain {
         classificationService.classify(bankStatementDetailsList);
         //bankStatementDetailsList.forEach(System.out::println);
         expenseCalculationService.calculateExpenses(bankStatementDetailsList);
+        //displayAllBeans();
         try {
             fileParsingService.exportData(bankStatementDetailsList);
         } catch (IOException e) {

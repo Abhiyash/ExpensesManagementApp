@@ -1,6 +1,9 @@
 package com.apm.expenses.service;
 
+import com.apm.expenses.config.MongoConfig;
 import com.apm.expenses.model.BankStatementDetails;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.stereotype.Service;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -9,7 +12,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
 
+@Service
 public class ClassificationService {
+
+    private final MongoTemplate mongoTemplate;
+
+    public ClassificationService(){
+        MongoConfig mongoConfig = new MongoConfig();
+        mongoTemplate = mongoConfig.mongoTemplate();
+    }
     public void classify(List<BankStatementDetails> bankStatementDetailsList){
         /*TODO
         * 1. Read the properties file and load all the categories and subcategories
@@ -62,12 +73,29 @@ public class ClassificationService {
         subCategoryMap.put("movie",movieList);
         subCategoryMap.put("wifi",wifiList);
 
+        String petrol = properties.getProperty("Petrol");
+        List<String> petrolList = Arrays.asList(petrol);
+        subCategoryMap.put("petrol",petrolList);
+
+        String otherNeeds = properties.getProperty("other_needs");
+        String[] otherNeedsArr = otherNeeds.split(",");
+        List<String> otherNeedsList = Arrays.stream(otherNeedsArr).toList();
+        subCategoryMap.put("other_needs",otherNeedsList);
+
+        String mom = properties.getProperty("Mom");
+        List<String> momList = Arrays.asList(mom);
+        subCategoryMap.put("mom",momList);
+
+        String rent = properties.getProperty("Rent");
+        List<String> rentList = Arrays.asList(rent);
+        subCategoryMap.put("rent",rentList);
+
         for(BankStatementDetails bankStatement : bankStatementDetailsList){
             assignSubCategory(bankStatement, subCategoryMap);
             assignCategory(bankStatement,categoryMap);
         }
 
-        System.out.println(wantsList);
+        mongoTemplate.insert(bankStatementDetailsList,"statement_details");
     }
 
     private void assignSubCategory(BankStatementDetails bankStatement, HashMap<String,List<String>> subCategoryMap) {
@@ -86,6 +114,9 @@ public class ClassificationService {
             for (String eachCategory : categoryMap.get(category)) {
                 if (bankStatement.getDescription().toLowerCase().contains(eachCategory.toLowerCase()) || bankStatement.getSubCategory().contains(eachCategory)) {
                     bankStatement.setCategory(category);
+                    if (category.equals("Investments")){
+                        bankStatement.setSubCategory(category);
+                    }
                 }
             }
         }
