@@ -6,7 +6,7 @@ Basic Capabilities
 Future Improvements
 1) Improve the classification config file.
 2) Create charts to visualized data.
-3) Persist the data in DB.
+3) Persist the data in DB - done
 5) Add support so that multiple file can be uploaded and expenses calculated
 6) Add support for other bank statements to be uploaded.
 7) Ability to calculate date wise.  
