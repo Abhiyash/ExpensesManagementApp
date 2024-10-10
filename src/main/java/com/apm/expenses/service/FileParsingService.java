@@ -1,7 +1,7 @@
 package com.apm.expenses.service;
 
-import com.apm.expenses.config.MongoConfig;
 import com.apm.expenses.model.BankStatementDetails;
+
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.poi.ss.usermodel.Cell;
@@ -9,7 +9,6 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
@@ -19,23 +18,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import static com.apm.expenses.constant.Constants.HEADERS;
+
 @Service
 public class FileParsingService {
-    private final MongoTemplate mongoTemplate;
 
-    private List<BankStatementDetails> bankStatementDetailsList = new ArrayList<BankStatementDetails>();
-
-    public FileParsingService(){
-        MongoConfig mongoConfig = new MongoConfig();
-        mongoTemplate = mongoConfig.mongoTemplate();
-    }
-
-    public List<BankStatementDetails> parseInputFiles() {
+    public List<BankStatementDetails> parseInputFilesTxt(String fileName) {
         List<BankStatementDetails> bankStatementDetailsList = new ArrayList<BankStatementDetails>();
         //115329700_1727870796358
         // Abhiyash 115329700_1727870760267
-        try(Reader reader = new FileReader("src/main/resources/115329700_1727870796358.txt");) {
-            String[] HEADERS = { "Date", "Narration","Value Dat","Debit Amount","Credit Amount","Chq/Ref Number","Closing Balance"};
+
+        try(Reader reader = new FileReader(fileName);) {
+
             DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yy", Locale.ENGLISH);
             CSVFormat csvFormat = CSVFormat.DEFAULT.builder().setDelimiter(',').setHeader(HEADERS).setSkipHeaderRecord(true).build();
             Iterable<CSVRecord> records = csvFormat.parse(reader);

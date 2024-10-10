@@ -4,6 +4,7 @@ import lombok.*;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -20,8 +21,9 @@ public class BankStatementDetails {
     private double creditAmount;
     private double closingBalance;
     private String userId = "System";
-    private String createdOn;
-    private String modifiedOn;
+    private LocalDateTime createdOn;
+    private String createdBy;
+    private LocalDateTime modifiedOn;
     private String modifiedBy;
 
 }

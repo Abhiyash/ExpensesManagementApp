@@ -2,6 +2,7 @@ package com.apm.expenses.service;
 
 import com.apm.expenses.config.MongoConfig;
 import com.apm.expenses.model.BankStatementDetails;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 
@@ -15,7 +16,8 @@ import java.util.Properties;
 @Service
 public class ClassificationService {
 
-    private final MongoTemplate mongoTemplate;
+    @Autowired
+    private MongoTemplate mongoTemplate;
 
     public ClassificationService(){
         MongoConfig mongoConfig = new MongoConfig();
@@ -94,8 +96,6 @@ public class ClassificationService {
             assignSubCategory(bankStatement, subCategoryMap);
             assignCategory(bankStatement,categoryMap);
         }
-
-        mongoTemplate.insert(bankStatementDetailsList,"statement_details");
     }
 
     private void assignSubCategory(BankStatementDetails bankStatement, HashMap<String,List<String>> subCategoryMap) {
