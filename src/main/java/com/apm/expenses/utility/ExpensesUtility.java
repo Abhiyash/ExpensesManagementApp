@@ -18,4 +18,8 @@ public class ExpensesUtility {
     public LocalDateTime getCurrentTimeStamp(){
         return LocalDateTime.now();
     }
+
+    public String currentTimeStamp(){
+        return String.valueOf(System.currentTimeMillis());
+    }
 }

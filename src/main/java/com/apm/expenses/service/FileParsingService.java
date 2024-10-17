@@ -1,27 +1,32 @@
 package com.apm.expenses.service;
 
+import com.apm.expenses.constant.Constants;
+import com.apm.expenses.dto.BankStatementDetailsDto;
 import com.apm.expenses.model.BankStatementDetails;
 
+import com.apm.expenses.utility.ExpensesUtility;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 import static com.apm.expenses.constant.Constants.HEADERS;
 
 @Service
 public class FileParsingService {
+
+    @Autowired
+    ExpensesUtility expensesUtility;
 
     public List<BankStatementDetails> parseInputFilesTxt(String fileName) {
         List<BankStatementDetails> bankStatementDetailsList = new ArrayList<BankStatementDetails>();
@@ -51,40 +56,102 @@ public class FileParsingService {
         }
         return bankStatementDetailsList;
     }
-    public void exportData(List<BankStatementDetails> bankStatementDetailsList) throws IOException {
+
+    public List<BankStatementDetailsDto> parseInputFilesXlsx(String fileName) {
+        List<BankStatementDetailsDto> bankStatementDetailsDtoList = new ArrayList<BankStatementDetailsDto>();
+        try(FileInputStream file = new FileInputStream(new File(fileName))){
+            Workbook workbook = new XSSFWorkbook(file);
+            Sheet sheet = workbook.getSheetAt(0);
+
+            Map<Integer,List<String>> data = new HashMap<>();
+            int i = 0;
+            for (Row row : sheet) {
+                i = 0;
+                Iterator<Cell> cellIterator = row.cellIterator();
+                while (cellIterator.hasNext()) {
+                    if (row.getCell(i).getCellType() == CellType.STRING){
+                        System.out.println(row.getCell(i).getStringCellValue());
+                    }
+                    else{
+                        System.out.println(row.getCell(i).getNumericCellValue());
+                    }
+                    cellIterator.next();
+                    i++;
+                }
+                //TODO Implement the parser logic and updating the documents in mongo DB
+                /*for(Cell cell : row) {
+
+                    switch (cell.getCellType()) {
+                        case STRING -> {
+                            if (cell.getColumnIndex() == 1 || cell.getColumnIndex() == 2 || cell.getColumnIndex() == 3 || cell.getColumnIndex() == 4){
+                                System.out.println(cell.getStringCellValue());
+                            }
+                        }
+                        case NUMERIC -> {
+                            if (cell.getColumnIndex() == 5 || cell.getColumnIndex() == 6){
+
+                            }
+                        }
+                        default -> {
+                            System.out.println(cell.getCellType());
+                        }
+                    }
+                }*/
+                //TODO Rename the files by adding processed suffix and moving to processed folder
+            }
+        }
+        catch(IOException e){
+            System.out.println(e.getMessage());
+        }
+        return bankStatementDetailsDtoList;
+    }
+
+    public void exportData(List<BankStatementDetailsDto> bankStatementDetailsDtoList, String userId) throws IOException {
+
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("Bank Statements");
 
         Row header = sheet.createRow(0);
         Cell headercell = header.createCell(0);
-        headercell.setCellValue("Narration");
+        headercell.setCellValue("Id");
 
         headercell = header.createCell(1);
-        headercell.setCellValue("Category");
+        headercell.setCellValue("Transaction Date");
 
         headercell = header.createCell(2);
-        headercell.setCellValue("subCategory");
+        headercell.setCellValue("Description");
 
         headercell = header.createCell(3);
-        headercell.setCellValue("Amount");
+        headercell.setCellValue("Category");
 
+        headercell = header.createCell(4);
+        headercell.setCellValue("subCategory");
+
+        headercell = header.createCell(5);
+        headercell.setCellValue("Debit Amount");
+
+        headercell = header.createCell(6);
+        headercell.setCellValue("Credit Amount");
         int rowCount = 1;
 
-        for (BankStatementDetails bankStatementDetails : bankStatementDetailsList) {
+        for (BankStatementDetailsDto bankStatementDetailsDto : bankStatementDetailsDtoList) {
             Row row = sheet.createRow(rowCount++);
-            row.createCell(0).setCellValue(bankStatementDetails.getDescription());
-            row.createCell(1).setCellValue(bankStatementDetails.getCategory());
-            row.createCell(2).setCellValue(bankStatementDetails.getSubCategory());
-            row.createCell(3).setCellValue(bankStatementDetails.getDebitAmount());
+
+            row.createCell(0).setCellValue(bankStatementDetailsDto.getId());
+            row.createCell(1).setCellValue(bankStatementDetailsDto.getTransactionDate());
+            row.createCell(2).setCellValue(bankStatementDetailsDto.getDescription());
+            row.createCell(3).setCellValue(bankStatementDetailsDto.getCategory());
+            row.createCell(4).setCellValue(bankStatementDetailsDto.getSubCategory());
+            row.createCell(5).setCellValue(bankStatementDetailsDto.getDebitAmount());
+            row.createCell(6).setCellValue(bankStatementDetailsDto.getCreditAmount());
         }
 
-        File currDir = new File(".");
-        String path = currDir.getAbsolutePath();
-        String fileLocation = path.substring(0, path.length() - 1) + "temp.xlsx";
-
-        FileOutputStream outputStream = new FileOutputStream(fileLocation);
+        String directory = Constants.APP_FILES_PATH + "/" + userId + "/" + Constants.OUTPUT_FILE;
+        String fileName = userId + "_" + expensesUtility.currentTimeStamp() +".xlsx";
+        Path path = Paths.get(directory,fileName);
+        //TODO Add proper exception handling
+        FileOutputStream outputStream = new FileOutputStream(path.toFile());
         workbook.write(outputStream);
         workbook.close();
-
     }
 }

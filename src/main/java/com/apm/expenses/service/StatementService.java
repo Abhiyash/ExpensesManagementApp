@@ -1,6 +1,7 @@
 package com.apm.expenses.service;
 
 import com.apm.expenses.dao.StatementDetailsDao;
+import com.apm.expenses.dto.BankStatementDetailsDto;
 import com.apm.expenses.model.BankStatementDetails;
 import com.apm.expenses.utility.ExpensesUtility;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +40,7 @@ public class StatementService {
          * 3. Pick up the files
          * 4. Perform Actions according to file format
          * */
-        List<BankStatementDetails> bankStatementDetailsList = new ArrayList<BankStatementDetails>();
+
         final String filesPath = Constants.APP_FILES_PATH + "/" + userId + "/" + Constants.INPUT_FILE;
         Stream<Path> stream = Files.list(Paths.get(filesPath));
         List<String> fileNamesList = stream.filter(file -> !Files.isDirectory(file)).map(Path::getFileName).map(Path::toString).toList();
@@ -48,20 +49,31 @@ public class StatementService {
             expensesUtility.genrateUUID(fileName);
             System.out.println("Working on " + completeFilePath);
             if (fileName.contains("txt")){
-                bankStatementDetailsList = fileParsingService.parseInputFilesTxt(completeFilePath);
+                List<BankStatementDetails> bankStatementDetailsList = fileParsingService.parseInputFilesTxt(completeFilePath);
+                if (!ObjectUtils.isEmpty(bankStatementDetailsList)){
+                    classificationService.classify(bankStatementDetailsList);
+                }
+                //TODO Add a return for classify method. So only when status is success we will insert data
+                statementDetailsDao.save(bankStatementDetailsList);
             }
-            //Add else block for parsing xlsx file
-
-            //TODO Add a return for classify method. So only when status is success we will insert data
-            if (!ObjectUtils.isEmpty(bankStatementDetailsList)){
-                classificationService.classify(bankStatementDetailsList);
+            else{
+                List<BankStatementDetailsDto> bankStatementDetailsDtoList = fileParsingService.parseInputFilesXlsx(completeFilePath);
+                //TODO Update the records in MongoDB
             }
 
-            statementDetailsDao.save(bankStatementDetailsList);
+
+
+
+
         }
         System.out.println(fileNamesList);
         //System.out.println(mongoTemplate.getCollectionNames());
         return "SUCCESS";
     }
 
+    public String getStatement(String userId) throws IOException {
+        List<BankStatementDetailsDto> bankStatementDetailsDtoList = statementDetailsDao.getStatements(userId);
+        fileParsingService.exportData(bankStatementDetailsDtoList,userId);
+        return "SUCCESS";
+    }
 }

@@ -1,9 +1,12 @@
 package com.apm.expenses.dao;
 
+import com.apm.expenses.dto.BankStatementDetailsDto;
 import com.apm.expenses.model.BankStatementDetails;
 import com.apm.expenses.utility.ExpensesUtility;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -26,5 +29,18 @@ public class StatementDetailsDao {
             bankStatementDetails.setModifiedBy("SYSTEM");
         }
         mongoTemplate.insert(bankStatementDetailsList,"statement_details");
+    }
+
+    public List<BankStatementDetailsDto> getStatements(String userId){
+        Query query = new Query();
+
+        Criteria criteria = new Criteria();
+        criteria.and("userId").is(userId);
+
+        query.addCriteria(criteria);
+        query.fields().include("id").include("transactionDate").include("description").include("category").include("subCategory").include("debitAmount").include("creditAmount");
+        List<BankStatementDetailsDto> bankStatementDetailsDtoList = mongoTemplate.find(query, BankStatementDetailsDto.class);
+        System.out.println(bankStatementDetailsDtoList);
+        return bankStatementDetailsDtoList;
     }
 }
