@@ -19,6 +19,7 @@ public class BankStatementDetailsDto {
     private String id;
 
     private LocalDate transactionDate;
+    private String accountNumber;
     private String description;
     private String category;
     private String subCategory;

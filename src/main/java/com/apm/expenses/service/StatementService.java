@@ -6,6 +6,8 @@ import com.apm.expenses.model.BankStatementDetails;
 import com.apm.expenses.utility.ExpensesUtility;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import com.apm.expenses.constant.Constants;
 import org.springframework.util.ObjectUtils;
@@ -14,6 +16,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -33,7 +36,7 @@ public class StatementService {
     @Autowired
     private StatementDetailsDao statementDetailsDao;
 
-    public String updateStatement(String userId) throws IOException {
+    public String updateStatement(String userId, String bankAccountNumber) throws IOException {
         /*TODO
          * 1. Go to the App directory
          * 2. Go to the user directory
@@ -54,6 +57,11 @@ public class StatementService {
                     classificationService.classify(bankStatementDetailsList);
                 }
                 //TODO Add a return for classify method. So only when status is success we will insert data
+                /*TODO
+                * 1. Fetch data from Mongo using the query parameters
+                * 2. Check if the data is duplicate
+                * 3. Only save new data
+                * */
                 statementDetailsDao.save(bankStatementDetailsList);
             }
             else{
@@ -71,8 +79,16 @@ public class StatementService {
         return "SUCCESS";
     }
 
-    public String getStatement(String userId) throws IOException {
-        List<BankStatementDetailsDto> bankStatementDetailsDtoList = statementDetailsDao.getStatements(userId);
+    public String getStatement(String userId,LocalDate from, LocalDate to) throws IOException {
+        Query query = new Query();
+
+        Criteria criteria = new Criteria();
+        criteria.and("userId").is(userId);
+        criteria.and("").is(from);
+        criteria.and("").is(to);
+        query.addCriteria(criteria);
+        query.fields().include("id").include("transactionDate").include("description").include("category").include("subCategory").include("debitAmount").include("creditAmount").include("bankAccountNumber");
+        List<BankStatementDetailsDto> bankStatementDetailsDtoList = statementDetailsDao.getStatements(query);
         fileParsingService.exportData(bankStatementDetailsDtoList,userId);
         return "SUCCESS";
     }

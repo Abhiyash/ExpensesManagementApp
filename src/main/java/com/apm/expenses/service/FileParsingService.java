@@ -45,6 +45,7 @@ public class FileParsingService {
                 bankStatementDetails.setDescription(record.get(1).trim());
                 bankStatementDetails.setDebitAmount(Double.parseDouble(record.get(3).trim()));
                 bankStatementDetails.setCreditAmount(Double.parseDouble(record.get(4).trim()));
+                bankStatementDetails.setRefNumber(record.get(5));
                 bankStatementDetails.setClosingBalance(Double.parseDouble(record.get(6).trim()));
                 bankStatementDetails.setSubCategory("");
                 bankStatementDetails.setCategory("");

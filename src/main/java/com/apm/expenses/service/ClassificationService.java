@@ -2,16 +2,15 @@ package com.apm.expenses.service;
 
 import com.apm.expenses.config.MongoConfig;
 import com.apm.expenses.model.BankStatementDetails;
+import com.apm.expenses.model.Category;
+import com.apm.expenses.model.SubCategory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 @Service
 public class ClassificationService {
@@ -23,7 +22,7 @@ public class ClassificationService {
         MongoConfig mongoConfig = new MongoConfig();
         mongoTemplate = mongoConfig.mongoTemplate();
     }
-    public void classify(List<BankStatementDetails> bankStatementDetailsList){
+    public void classify(List<BankStatementDetails> bankStatementDetailsList) throws IOException {
         /*TODO
         * 1. Read the properties file and load all the categories and subcategories
         * 2. Classify the entries in list
@@ -96,6 +95,47 @@ public class ClassificationService {
             assignSubCategory(bankStatement, subCategoryMap);
             assignCategory(bankStatement,categoryMap);
         }
+        
+        //insertConfigs();
+    }
+
+    private void insertConfigs() throws IOException {
+        Properties props = new Properties();
+        props.load(new FileInputStream("src/main/resources/config.properties"));
+
+        Map<String, List<String>> topCategories = new HashMap<>();
+        Map<String, List<String>> subcategoryTags = new HashMap<>();
+
+        for (String key : props.stringPropertyNames()) {
+            List<String> values = Arrays.stream(props.getProperty(key).split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .toList();
+
+            if (List.of("Needs", "Wants", "Investments").contains(key)) {
+                topCategories.put(key, values);
+            } else {
+                subcategoryTags.put(key, values);
+            }
+        }
+
+        for (Map.Entry<String, List<String>> entry : topCategories.entrySet()) {
+            String categoryName = entry.getKey();
+            List<String> subcatNames = entry.getValue();
+
+            List<SubCategory> subcategories = new ArrayList<>();
+            for (String subcat : subcatNames) {
+                List<String> tags = subcategoryTags.getOrDefault(subcat, List.of(subcat));
+                subcategories.add(new SubCategory(subcat, tags));
+            }
+
+            Category category = new Category();
+            category.setName(categoryName);
+            category.setSubCategory(subcategories);
+            mongoTemplate.save(category);
+        }
+
+        System.out.println("Loaded categories from .properties into MongoDB.");
     }
 
     private void assignSubCategory(BankStatementDetails bankStatement, HashMap<String,List<String>> subCategoryMap) {

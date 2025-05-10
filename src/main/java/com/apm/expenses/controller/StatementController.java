@@ -3,10 +3,12 @@ package com.apm.expenses.controller;
 import com.apm.expenses.service.StatementService;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.time.LocalDate;
 
 @Controller
 public class StatementController {
@@ -15,14 +17,20 @@ public class StatementController {
     StatementService statementService;
 
     @PostMapping("/bankstatement")
-    public @ResponseBody String updatebankstatement(@RequestParam String userId) throws IOException {
-        statementService.updateStatement(userId);
+    public @ResponseBody String updatebankstatement(@RequestParam String userId, @RequestParam String bankAccountNumber
+                                                    ) throws IOException {
+        statementService.updateStatement(userId,bankAccountNumber);
+        //TODO What will be the values when from and to are not passed.
+
+
         return "SUCCESS";
     }
 
     @GetMapping("/bankstatement")
-    public @ResponseBody String getbankstatement(@RequestParam String userId) throws IOException {
-        statementService.getStatement(userId);
+    public @ResponseBody String getbankstatement(@RequestParam String userId,
+                                                 @RequestParam(value = "from", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+                                                 @RequestParam(value = "to", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) throws IOException {
+        statementService.getStatement(userId, from, to);
         return "SUCCESS";
     }
 }

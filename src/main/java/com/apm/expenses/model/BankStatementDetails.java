@@ -20,6 +20,8 @@ public class BankStatementDetails {
     private double debitAmount;
     private double creditAmount;
     private double closingBalance;
+    private String refNumber;
+    private String bankAccountNumber;
     private String userId = "System";
     private LocalDateTime createdOn;
     private String createdBy;

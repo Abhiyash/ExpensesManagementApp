@@ -31,14 +31,8 @@ public class StatementDetailsDao {
         mongoTemplate.insert(bankStatementDetailsList,"statement_details");
     }
 
-    public List<BankStatementDetailsDto> getStatements(String userId){
-        Query query = new Query();
+    public List<BankStatementDetailsDto> getStatements(Query query){
 
-        Criteria criteria = new Criteria();
-        criteria.and("userId").is(userId);
-
-        query.addCriteria(criteria);
-        query.fields().include("id").include("transactionDate").include("description").include("category").include("subCategory").include("debitAmount").include("creditAmount");
         List<BankStatementDetailsDto> bankStatementDetailsDtoList = mongoTemplate.find(query, BankStatementDetailsDto.class);
         System.out.println(bankStatementDetailsDtoList);
         return bankStatementDetailsDtoList;
