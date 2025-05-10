@@ -5,6 +5,7 @@ import com.apm.expenses.dto.BankStatementDetailsDto;
 import com.apm.expenses.model.BankStatementDetails;
 import com.apm.expenses.utility.ExpensesUtility;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.BulkOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -17,8 +18,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
@@ -62,11 +66,38 @@ public class StatementService {
                 * 2. Check if the data is duplicate
                 * 3. Only save new data
                 * */
-                statementDetailsDao.save(bankStatementDetailsList);
+                Set<String> refNumbers = bankStatementDetailsList.stream()
+                        .map(BankStatementDetails::getRefNumber)
+                        .collect(Collectors.toSet());
+                //statementDetailsDao.save(bankStatementDetailsList);
+
+                Query query = new Query(Criteria.where("refNumber").in(refNumbers).and("bankAccountNumber").is(bankAccountNumber).and("userId").is(userId));
+                List<String> existingRefNumbers = statementDetailsDao.fetchStatements(query)
+                        .stream()
+                        .map(BankStatementDetails::getRefNumber)
+                        .collect(Collectors.toList());
+
+                List<BankStatementDetails> newBankStatements = bankStatementDetailsList.stream()
+                        .filter(bankStatement -> !existingRefNumbers.contains(bankStatement.getRefNumber()))
+                        .peek(bankStatement -> {
+                            // Set additional metadata for new records
+                            bankStatement.setUserId(userId);
+                            bankStatement.setBankAccountNumber(bankAccountNumber);
+                            bankStatement.setCreatedOn(LocalDateTime.now());
+                            bankStatement.setCreatedBy("System");
+                            bankStatement.setModifiedOn(LocalDateTime.now());
+                            bankStatement.setModifiedBy("System");
+                        })
+                        .collect(Collectors.toList());
+                System.out.println("newbankStatements :: "+newBankStatements);
+                if (!newBankStatements.isEmpty()) {
+                    statementDetailsDao.insertStatements(newBankStatements);
+                }
             }
             else{
                 List<BankStatementDetailsDto> bankStatementDetailsDtoList = fileParsingService.parseInputFilesXlsx(completeFilePath);
                 //TODO Update the records in MongoDB
+
             }
 
 
@@ -80,15 +111,23 @@ public class StatementService {
     }
 
     public String getStatement(String userId,LocalDate from, LocalDate to) throws IOException {
+        if (ObjectUtils.isEmpty(from))
+        {
+            from = LocalDate.now().minusYears(1);
+        }
+        if (ObjectUtils.isEmpty(to))
+        {
+            to = LocalDate.now();
+        }
+        System.out.println("From :: " + from);
+        System.out.println("To :: " + to);
         Query query = new Query();
 
-        Criteria criteria = new Criteria();
-        criteria.and("userId").is(userId);
-        criteria.and("").is(from);
-        criteria.and("").is(to);
+        Criteria criteria = Criteria.where("userId").is(userId).and("transactionDate").gte(from).lte(to);
         query.addCriteria(criteria);
-        query.fields().include("id").include("transactionDate").include("description").include("category").include("subCategory").include("debitAmount").include("creditAmount").include("bankAccountNumber");
+        query.fields().include("id").include("transactionDate").include("description").include("category").include("subCategory").include("debitAmount").include("creditAmount").include("bankAccountNumber").include("tag");
         List<BankStatementDetailsDto> bankStatementDetailsDtoList = statementDetailsDao.getStatements(query);
+        System.out.println("bankStatementDetailsDtoList :: " +bankStatementDetailsDtoList);
         fileParsingService.exportData(bankStatementDetailsDtoList,userId);
         return "SUCCESS";
     }

@@ -19,6 +19,7 @@ public class StatementController {
     @PostMapping("/bankstatement")
     public @ResponseBody String updatebankstatement(@RequestParam String userId, @RequestParam String bankAccountNumber
                                                     ) throws IOException {
+        System.out.println("userId = " + userId);
         statementService.updateStatement(userId,bankAccountNumber);
         //TODO What will be the values when from and to are not passed.
 

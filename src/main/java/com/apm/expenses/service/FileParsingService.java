@@ -45,7 +45,7 @@ public class FileParsingService {
                 bankStatementDetails.setDescription(record.get(1).trim());
                 bankStatementDetails.setDebitAmount(Double.parseDouble(record.get(3).trim()));
                 bankStatementDetails.setCreditAmount(Double.parseDouble(record.get(4).trim()));
-                bankStatementDetails.setRefNumber(record.get(5));
+                bankStatementDetails.setRefNumber(record.get(5).trim());
                 bankStatementDetails.setClosingBalance(Double.parseDouble(record.get(6).trim()));
                 bankStatementDetails.setSubCategory("");
                 bankStatementDetails.setCategory("");
@@ -64,42 +64,28 @@ public class FileParsingService {
             Workbook workbook = new XSSFWorkbook(file);
             Sheet sheet = workbook.getSheetAt(0);
 
-            Map<Integer,List<String>> data = new HashMap<>();
-            int i = 0;
-            for (Row row : sheet) {
-                i = 0;
-                Iterator<Cell> cellIterator = row.cellIterator();
-                while (cellIterator.hasNext()) {
-                    if (row.getCell(i).getCellType() == CellType.STRING){
-                        System.out.println(row.getCell(i).getStringCellValue());
-                    }
-                    else{
-                        System.out.println(row.getCell(i).getNumericCellValue());
-                    }
-                    cellIterator.next();
-                    i++;
-                }
-                //TODO Implement the parser logic and updating the documents in mongo DB
-                /*for(Cell cell : row) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            // Assuming first row is header
+            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+                Row row = sheet.getRow(i);
 
-                    switch (cell.getCellType()) {
-                        case STRING -> {
-                            if (cell.getColumnIndex() == 1 || cell.getColumnIndex() == 2 || cell.getColumnIndex() == 3 || cell.getColumnIndex() == 4){
-                                System.out.println(cell.getStringCellValue());
-                            }
-                        }
-                        case NUMERIC -> {
-                            if (cell.getColumnIndex() == 5 || cell.getColumnIndex() == 6){
+                if (row == null) continue;
 
-                            }
-                        }
-                        default -> {
-                            System.out.println(cell.getCellType());
-                        }
-                    }
-                }*/
-                //TODO Rename the files by adding processed suffix and moving to processed folder
+                BankStatementDetailsDto bankStatementDetailsDto = new BankStatementDetailsDto();
+                bankStatementDetailsDto.setId(row.getCell(0).getStringCellValue());
+                bankStatementDetailsDto.setTransactionDate(LocalDate.parse(row.getCell(1).getStringCellValue(), formatter));
+                bankStatementDetailsDto.setBankAccountNumber(row.getCell(2).getStringCellValue());
+                bankStatementDetailsDto.setDescription(row.getCell(3).getStringCellValue());
+                bankStatementDetailsDto.setCategory(row.getCell(4).getStringCellValue());
+                bankStatementDetailsDto.setSubCategory(row.getCell(5).getStringCellValue());
+                bankStatementDetailsDto.setTag(row.getCell(6).getStringCellValue());
+                bankStatementDetailsDto.setDebitAmount(row.getCell(7).getNumericCellValue());
+                bankStatementDetailsDto.setCreditAmount(row.getCell(8).getNumericCellValue());
+
+                bankStatementDetailsDtoList.add(bankStatementDetailsDto);
             }
+            workbook.close();
+                //TODO Rename the files by adding processed suffix and moving to processed folder
         }
         catch(IOException e){
             System.out.println(e.getMessage());
@@ -120,18 +106,24 @@ public class FileParsingService {
         headercell.setCellValue("Transaction Date");
 
         headercell = header.createCell(2);
-        headercell.setCellValue("Description");
+        headercell.setCellValue("Account Number");
 
         headercell = header.createCell(3);
-        headercell.setCellValue("Category");
+        headercell.setCellValue("Description");
 
         headercell = header.createCell(4);
-        headercell.setCellValue("subCategory");
+        headercell.setCellValue("Category");
 
         headercell = header.createCell(5);
-        headercell.setCellValue("Debit Amount");
+        headercell.setCellValue("subCategory");
 
         headercell = header.createCell(6);
+        headercell.setCellValue("tag");
+
+        headercell = header.createCell(7);
+        headercell.setCellValue("Debit Amount");
+
+        headercell = header.createCell(8);
         headercell.setCellValue("Credit Amount");
         int rowCount = 1;
 
@@ -140,11 +132,13 @@ public class FileParsingService {
 
             row.createCell(0).setCellValue(bankStatementDetailsDto.getId());
             row.createCell(1).setCellValue(bankStatementDetailsDto.getTransactionDate());
-            row.createCell(2).setCellValue(bankStatementDetailsDto.getDescription());
-            row.createCell(3).setCellValue(bankStatementDetailsDto.getCategory());
-            row.createCell(4).setCellValue(bankStatementDetailsDto.getSubCategory());
-            row.createCell(5).setCellValue(bankStatementDetailsDto.getDebitAmount());
-            row.createCell(6).setCellValue(bankStatementDetailsDto.getCreditAmount());
+            row.createCell(2).setCellValue(bankStatementDetailsDto.getBankAccountNumber());
+            row.createCell(3).setCellValue(bankStatementDetailsDto.getDescription());
+            row.createCell(4).setCellValue(bankStatementDetailsDto.getCategory());
+            row.createCell(5).setCellValue(bankStatementDetailsDto.getSubCategory());
+            row.createCell(6).setCellValue(bankStatementDetailsDto.getTag());
+            row.createCell(7).setCellValue(bankStatementDetailsDto.getDebitAmount());
+            row.createCell(8).setCellValue(bankStatementDetailsDto.getCreditAmount());
         }
 
         String directory = Constants.APP_FILES_PATH + "/" + userId + "/" + Constants.OUTPUT_FILE;

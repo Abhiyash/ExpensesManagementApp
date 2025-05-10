@@ -143,6 +143,7 @@ public class ClassificationService {
             for(String eachSubCategory : subCategoryMap.get(subCategory)){
                 if(bankStatement.getDescription().toLowerCase().contains(eachSubCategory.toLowerCase())){
                     bankStatement.setSubCategory(subCategory);
+                    bankStatement.setTag(eachSubCategory);
                 }
             }
         }

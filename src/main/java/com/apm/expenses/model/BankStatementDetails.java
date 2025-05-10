@@ -22,10 +22,10 @@ public class BankStatementDetails {
     private double closingBalance;
     private String refNumber;
     private String bankAccountNumber;
-    private String userId = "System";
+    private String userId;
     private LocalDateTime createdOn;
     private String createdBy;
     private LocalDateTime modifiedOn;
     private String modifiedBy;
-
+    private String tag;
 }

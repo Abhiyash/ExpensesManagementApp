@@ -4,10 +4,13 @@ import com.apm.expenses.dto.BankStatementDetailsDto;
 import com.apm.expenses.model.BankStatementDetails;
 import com.apm.expenses.utility.ExpensesUtility;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.BulkOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.ObjectUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -36,5 +39,28 @@ public class StatementDetailsDao {
         List<BankStatementDetailsDto> bankStatementDetailsDtoList = mongoTemplate.find(query, BankStatementDetailsDto.class);
         System.out.println(bankStatementDetailsDtoList);
         return bankStatementDetailsDtoList;
+    }
+
+    public List<BankStatementDetails> fetchStatements(Query query){
+        List<BankStatementDetails> bankStatementDetailsList = mongoTemplate.find(query, BankStatementDetails.class);
+        System.out.println(bankStatementDetailsList);
+        return bankStatementDetailsList;
+    }
+
+    public void insertStatements(List<BankStatementDetails> bankStatementDetailsList){
+        mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, BankStatementDetails.class)
+                .insert(bankStatementDetailsList)
+                .execute();
+    }
+
+    public void updateStatements(List<BankStatementDetailsDto> bankStatementDetailsDtoList){
+        BulkOperations bulkOperations = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, BankStatementDetails.class);
+        for(BankStatementDetailsDto bankStatementDetailsDto : bankStatementDetailsDtoList){
+            Query query = Query.query(Criteria.where("id").is(bankStatementDetailsDto.getId()));
+
+            Update update = new Update();
+            if (!ObjectUtils.isEmpty(bankStatementDetailsDto.getCategory())){
+            }
+        }
     }
 }
