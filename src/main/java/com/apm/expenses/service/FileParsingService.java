@@ -73,12 +73,12 @@ public class FileParsingService {
 
                 BankStatementDetailsDto bankStatementDetailsDto = new BankStatementDetailsDto();
                 bankStatementDetailsDto.setId(row.getCell(0).getStringCellValue());
-                bankStatementDetailsDto.setTransactionDate(LocalDate.parse(row.getCell(1).getStringCellValue(), formatter));
+                bankStatementDetailsDto.setTransactionDate(DateUtil.getLocalDateTime(row.getCell(1).getNumericCellValue()).toLocalDate());
                 bankStatementDetailsDto.setBankAccountNumber(row.getCell(2).getStringCellValue());
                 bankStatementDetailsDto.setDescription(row.getCell(3).getStringCellValue());
-                bankStatementDetailsDto.setCategory(row.getCell(4).getStringCellValue());
-                bankStatementDetailsDto.setSubCategory(row.getCell(5).getStringCellValue());
-                bankStatementDetailsDto.setTag(row.getCell(6).getStringCellValue());
+                bankStatementDetailsDto.setCategory(row.getCell(4) == null ? "UNKNOWN" : row.getCell(4).getStringCellValue());
+                bankStatementDetailsDto.setSubCategory(row.getCell(5) == null ? "UNKNOWN" : row.getCell(5).getStringCellValue());
+                bankStatementDetailsDto.setTag(row.getCell(6) == null ? "UNKNOWN" : row.getCell(6).getStringCellValue());
                 bankStatementDetailsDto.setDebitAmount(row.getCell(7).getNumericCellValue());
                 bankStatementDetailsDto.setCreditAmount(row.getCell(8).getNumericCellValue());
 

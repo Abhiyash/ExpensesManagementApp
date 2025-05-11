@@ -56,11 +56,24 @@ public class StatementDetailsDao {
     public void updateStatements(List<BankStatementDetailsDto> bankStatementDetailsDtoList){
         BulkOperations bulkOperations = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, BankStatementDetails.class);
         for(BankStatementDetailsDto bankStatementDetailsDto : bankStatementDetailsDtoList){
-            Query query = Query.query(Criteria.where("id").is(bankStatementDetailsDto.getId()));
-
+            Query query = Query.query(Criteria.where("_id").is(bankStatementDetailsDto.getId()));
+            System.out.println("ID :: " + bankStatementDetailsDto.getId());
             Update update = new Update();
             if (!ObjectUtils.isEmpty(bankStatementDetailsDto.getCategory())){
+                System.out.println("category :: " + bankStatementDetailsDto.getCategory());
+                update.set("category", bankStatementDetailsDto.getCategory());
             }
+            if (!ObjectUtils.isEmpty(bankStatementDetailsDto.getSubCategory())){
+                System.out.println("subcategory :: " + bankStatementDetailsDto.getSubCategory());
+                update.set("subCategory", bankStatementDetailsDto.getSubCategory());
+            }
+            if (!ObjectUtils.isEmpty(bankStatementDetailsDto.getTag())){
+                System.out.println("tag :: " + bankStatementDetailsDto.getTag());
+                update.set("tag", bankStatementDetailsDto.getTag());
+            }
+
+            bulkOperations.updateOne(query, update);
         }
+        bulkOperations.execute();
     }
 }

@@ -1,5 +1,6 @@
 package com.apm.expenses.service;
 
+import com.apm.expenses.dao.ClassificationDao;
 import com.apm.expenses.dao.StatementDetailsDao;
 import com.apm.expenses.dto.BankStatementDetailsDto;
 import com.apm.expenses.model.BankStatementDetails;
@@ -40,14 +41,10 @@ public class StatementService {
     @Autowired
     private StatementDetailsDao statementDetailsDao;
 
-    public String updateStatement(String userId, String bankAccountNumber) throws IOException {
-        /*TODO
-         * 1. Go to the App directory
-         * 2. Go to the user directory
-         * 3. Pick up the files
-         * 4. Perform Actions according to file format
-         * */
+    @Autowired
+    private ClassificationDao classificationDao;
 
+    public String updateStatement(String userId, String bankAccountNumber) throws IOException {
         final String filesPath = Constants.APP_FILES_PATH + "/" + userId + "/" + Constants.INPUT_FILE;
         Stream<Path> stream = Files.list(Paths.get(filesPath));
         List<String> fileNamesList = stream.filter(file -> !Files.isDirectory(file)).map(Path::getFileName).map(Path::toString).toList();
@@ -61,11 +58,6 @@ public class StatementService {
                     classificationService.classify(bankStatementDetailsList);
                 }
                 //TODO Add a return for classify method. So only when status is success we will insert data
-                /*TODO
-                * 1. Fetch data from Mongo using the query parameters
-                * 2. Check if the data is duplicate
-                * 3. Only save new data
-                * */
                 Set<String> refNumbers = bankStatementDetailsList.stream()
                         .map(BankStatementDetails::getRefNumber)
                         .collect(Collectors.toSet());
@@ -89,21 +81,17 @@ public class StatementService {
                             bankStatement.setModifiedBy("System");
                         })
                         .collect(Collectors.toList());
-                System.out.println("newbankStatements :: "+newBankStatements);
                 if (!newBankStatements.isEmpty()) {
                     statementDetailsDao.insertStatements(newBankStatements);
                 }
             }
             else{
                 List<BankStatementDetailsDto> bankStatementDetailsDtoList = fileParsingService.parseInputFilesXlsx(completeFilePath);
-                //TODO Update the records in MongoDB
-
+                System.out.println("Bank Statement Details " + bankStatementDetailsDtoList);
+                statementDetailsDao.updateStatements(bankStatementDetailsDtoList);
+                classificationDao.updateConfigsForClassification(bankStatementDetailsDtoList);
+                //TODO Update the Configs
             }
-
-
-
-
-
         }
         System.out.println(fileNamesList);
         //System.out.println(mongoTemplate.getCollectionNames());
