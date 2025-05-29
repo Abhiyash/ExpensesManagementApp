@@ -4,6 +4,8 @@ import com.apm.expenses.dao.ClassificationDao;
 import com.apm.expenses.dao.StatementDetailsDao;
 import com.apm.expenses.dto.BankStatementDetailsDto;
 import com.apm.expenses.model.BankStatementDetails;
+import com.apm.expenses.model.Category;
+import com.apm.expenses.model.SubCategory;
 import com.apm.expenses.utility.ExpensesUtility;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.BulkOperations;
@@ -14,15 +16,14 @@ import org.springframework.stereotype.Service;
 import com.apm.expenses.constant.Constants;
 import org.springframework.util.ObjectUtils;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -90,7 +91,7 @@ public class StatementService {
                 System.out.println("Bank Statement Details " + bankStatementDetailsDtoList);
                 statementDetailsDao.updateStatements(bankStatementDetailsDtoList);
                 classificationDao.updateConfigsForClassification(bankStatementDetailsDtoList);
-                //TODO Update the Configs
+
             }
         }
         System.out.println(fileNamesList);
@@ -98,7 +99,7 @@ public class StatementService {
         return "SUCCESS";
     }
 
-    public String getStatement(String userId,LocalDate from, LocalDate to) throws IOException {
+    public List<BankStatementDetailsDto> getStatement(String userId,LocalDate from, LocalDate to) throws IOException {
         if (ObjectUtils.isEmpty(from))
         {
             from = LocalDate.now().minusYears(1);
@@ -115,8 +116,23 @@ public class StatementService {
         query.addCriteria(criteria);
         query.fields().include("id").include("transactionDate").include("description").include("category").include("subCategory").include("debitAmount").include("creditAmount").include("bankAccountNumber").include("tag");
         List<BankStatementDetailsDto> bankStatementDetailsDtoList = statementDetailsDao.getStatements(query);
+        return bankStatementDetailsDtoList;
+    }
+
+    public String getAndExportStatement(String userId,LocalDate from, LocalDate to) throws IOException {
+        List<BankStatementDetailsDto> bankStatementDetailsDtoList = getStatement(userId,from,to);
         System.out.println("bankStatementDetailsDtoList :: " +bankStatementDetailsDtoList);
         fileParsingService.exportData(bankStatementDetailsDtoList,userId);
+        return "SUCCESS";
+    }
+
+    public String insertConfigs(){
+        try {
+            classificationDao.insertConfigs();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
         return "SUCCESS";
     }
 }

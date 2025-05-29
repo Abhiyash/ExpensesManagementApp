@@ -101,7 +101,7 @@ public class ClassificationService {
             assignSubCategory(bankStatement, subCategoryMap);
             assignCategory(bankStatement,categoryMap);
         }*/
-        List<Category> categoryList = classificationDao.loadConfigsForClassification();
+        List<Category> categoryList = classificationDao.loadConfigs();
         Map<String, TagInfo> tagInfoMap = buildTagMap(categoryList);
         for(BankStatementDetails bankStatementDetails : bankStatementDetailsList){
             String description = bankStatementDetails.getDescription().toLowerCase();

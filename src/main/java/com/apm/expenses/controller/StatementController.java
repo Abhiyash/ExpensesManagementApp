@@ -1,7 +1,6 @@
 package com.apm.expenses.controller;
 
 import com.apm.expenses.service.StatementService;
-import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
@@ -31,7 +30,12 @@ public class StatementController {
     public @ResponseBody String getbankstatement(@RequestParam String userId,
                                                  @RequestParam(value = "from", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
                                                  @RequestParam(value = "to", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) throws IOException {
-        statementService.getStatement(userId, from, to);
+        statementService.getAndExportStatement(userId, from, to);
         return "SUCCESS";
+    }
+
+    @PostMapping("/insertConfigs")
+    public @ResponseBody String insertConfigs(){
+        return statementService.insertConfigs();
     }
 }

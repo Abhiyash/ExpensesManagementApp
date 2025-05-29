@@ -9,6 +9,7 @@ import java.util.List;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class SubCategory {
     private String name;
     private List<String> tags;
