@@ -1,14 +1,12 @@
 package com.apm.expenses.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @Builder
+@ToString
 public class TotalDto {
     private String name;
     private double amount;

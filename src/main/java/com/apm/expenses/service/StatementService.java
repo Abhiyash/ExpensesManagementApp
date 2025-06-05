@@ -114,6 +114,7 @@ public class StatementService {
 
         Criteria criteria = Criteria.where("userId").is(userId).and("transactionDate").gte(from).lte(to);
         query.addCriteria(criteria);
+        System.out.println(criteria);
         query.fields().include("id").include("transactionDate").include("description").include("category").include("subCategory").include("debitAmount").include("creditAmount").include("bankAccountNumber").include("tag");
         List<BankStatementDetailsDto> bankStatementDetailsDtoList = statementDetailsDao.getStatements(query);
         return bankStatementDetailsDtoList;
