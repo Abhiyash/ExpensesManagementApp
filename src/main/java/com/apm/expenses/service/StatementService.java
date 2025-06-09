@@ -116,8 +116,7 @@ public class StatementService {
         query.addCriteria(criteria);
         System.out.println(criteria);
         query.fields().include("id").include("transactionDate").include("description").include("category").include("subCategory").include("debitAmount").include("creditAmount").include("bankAccountNumber").include("tag");
-        List<BankStatementDetailsDto> bankStatementDetailsDtoList = statementDetailsDao.getStatements(query);
-        return bankStatementDetailsDtoList;
+        return statementDetailsDao.getStatements(query);
     }
 
     public String getAndExportStatement(String userId,LocalDate from, LocalDate to) throws IOException {
