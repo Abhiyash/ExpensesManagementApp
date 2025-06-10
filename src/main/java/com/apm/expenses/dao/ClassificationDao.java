@@ -1,5 +1,6 @@
 package com.apm.expenses.dao;
 
+import com.apm.expenses.constant.Constants;
 import com.apm.expenses.dto.BankStatementDetailsDto;
 import com.apm.expenses.model.Category;
 import com.apm.expenses.model.SubCategory;
@@ -21,12 +22,20 @@ public class ClassificationDao {
     @Autowired
     MongoTemplate mongoTemplate;
 
-    public List<Category> loadConfigs(){
-        return mongoTemplate.findAll(Category.class);
+    public List<Category> loadConfigs(List<String> categoryNames){
+        Query query = new Query();
+        query.addCriteria(Criteria.where("name").in(categoryNames));
+        return mongoTemplate.find(query, Category.class);
+    }
+
+    public List<Category> loadConfigsForNextMonthExpenses(){
+        Query query = new Query();
+        query.addCriteria(Criteria.where("name").is("NextMonthExpenses"));
+        return mongoTemplate.find(query, Category.class);
     }
 
     public void updateConfigsForClassification(List<BankStatementDetailsDto> bankStatementDetailsDtoList ){
-        List<Category> categoryList = loadConfigs();
+        List<Category> categoryList = loadConfigs(Constants.categoryName);
         for(BankStatementDetailsDto bankStatementDetailsDto : bankStatementDetailsDtoList){
             String category = bankStatementDetailsDto.getCategory();
             if ("UNKNOWN".equals(category)){

@@ -28,4 +28,5 @@ public class BankStatementDetails {
     private LocalDateTime modifiedOn;
     private String modifiedBy;
     private String tag;
+    private String expenseMonth;
 }

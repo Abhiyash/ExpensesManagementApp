@@ -83,12 +83,13 @@ public class StatementService {
                         })
                         .collect(Collectors.toList());
                 if (!newBankStatements.isEmpty()) {
-                    statementDetailsDao.insertStatements(newBankStatements);
+                    //statementDetailsDao.insertStatements(newBankStatements);
                 }
+                System.out.println(bankStatementDetailsList);
             }
             else{
                 List<BankStatementDetailsDto> bankStatementDetailsDtoList = fileParsingService.parseInputFilesXlsx(completeFilePath);
-                System.out.println("Bank Statement Details " + bankStatementDetailsDtoList);
+                //System.out.println("Bank Statement Details " + bankStatementDetailsDtoList);
                 statementDetailsDao.updateStatements(bankStatementDetailsDtoList);
                 classificationDao.updateConfigsForClassification(bankStatementDetailsDtoList);
 
@@ -114,7 +115,6 @@ public class StatementService {
 
         Criteria criteria = Criteria.where("userId").is(userId).and("transactionDate").gte(from).lte(to);
         query.addCriteria(criteria);
-        System.out.println(criteria);
         query.fields().include("id").include("transactionDate").include("description").include("category").include("subCategory").include("debitAmount").include("creditAmount").include("bankAccountNumber").include("tag");
         return statementDetailsDao.getStatements(query);
     }
