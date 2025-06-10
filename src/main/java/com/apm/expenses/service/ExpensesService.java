@@ -23,7 +23,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class ExpensesService {
@@ -40,10 +42,11 @@ public class ExpensesService {
         //2. Calculate total for category and subcategory
         try{
             List<BankStatementDetailsDto> bankStatementDetailsDtoList = statementService.getStatement(userId,fromDate,toDate);
+            Map<String,List<TotalDto>> totalMap = new HashMap<>();
             List<TotalDto> totalDtoList = new ArrayList<>();
             for (BankStatementDetailsDto bankStatementDetailsDto : bankStatementDetailsDtoList) {
-                addOrUpdateTotal(totalDtoList, bankStatementDetailsDto.getCategory(), bankStatementDetailsDto.getDebitAmount(), "Category");
-                addOrUpdateTotal(totalDtoList, bankStatementDetailsDto.getSubCategory(), bankStatementDetailsDto.getDebitAmount(), "SubCategory");
+                addOrUpdateTotal(totalMap, bankStatementDetailsDto.getCategory(), bankStatementDetailsDto.getDebitAmount(), "Category",bankStatementDetailsDto.getExpenseMonth());
+                addOrUpdateTotal(totalMap, bankStatementDetailsDto.getSubCategory(), bankStatementDetailsDto.getDebitAmount(), "SubCategory", bankStatementDetailsDto.getExpenseMonth());
             }
             ObjectMapper objectMapper  = new ObjectMapper();
             String jsonString = objectMapper.writeValueAsString(totalDtoList);
@@ -113,14 +116,21 @@ public class ExpensesService {
         return chart;
     }
 
-    private void addOrUpdateTotal(List<TotalDto> totalDtoList, String name, double amount, String type) {
-        for (TotalDto totalDto : totalDtoList) {
-            if (totalDto.getName().equals(name)) {
-                totalDto.setAmount(totalDto.getAmount()+amount);
-                return;
+    private void addOrUpdateTotal(Map<String,List<TotalDto>> totalDtoMap, String name, double amount, String type, String expenseMonth) {
+        if (totalDtoMap.containsKey(expenseMonth)) {
+            List<TotalDto> totalDtoList = totalDtoMap.get(expenseMonth);
+            for (TotalDto totalDto : totalDtoList) {
+                if (totalDto.getName().equals(name)) {
+                    totalDto.setAmount(totalDto.getAmount()+amount);
+                    return;
+                }
             }
+            totalDtoList.add(TotalDto.builder().name(name).amount(amount).type(type).build());
         }
-        totalDtoList.add(TotalDto.builder().name(name).amount(amount).type(type).build());
+        else{
+            totalDtoMap.put(expenseMonth,List.of(TotalDto.builder().name(name).amount(amount).type(type).build()));
+        }
+
     }
 }
 

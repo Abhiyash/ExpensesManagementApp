@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.TextStyle;
 import java.util.*;
 
 @Service
@@ -34,7 +36,7 @@ public class ClassificationService {
         for(BankStatementDetails bankStatementDetails : bankStatementDetailsList){
             String description = bankStatementDetails.getDescription().toLowerCase();
             String expenseMonth = bankStatementDetails.getTransactionDate().getMonth().toString() + bankStatementDetails.getTransactionDate().getYear();
-            bankStatementDetails.setExpenseMonth(expenseMonth);
+
             Boolean salaryCredited = checkIfSalaryCredited(description);
             /**TODO
              * 1. Get the expense month from the transaction date
@@ -50,6 +52,8 @@ public class ClassificationService {
                         bankStatementDetails.setCategory(tagInfo.getCategory());
                         bankStatementDetails.setSubCategory(tagInfo.getSubCategory());
                         bankStatementDetails.setTag(entry.getKey());
+                        expenseMonth = getExpenseMonthFromDate(bankStatementDetails.getTransactionDate(),Boolean.TRUE);
+                        bankStatementDetails.setExpenseMonth(expenseMonth);
                         statementClassified = true;
                         break;
                     }
@@ -62,6 +66,8 @@ public class ClassificationService {
                         bankStatementDetails.setCategory(tagInfo.getCategory());
                         bankStatementDetails.setSubCategory(tagInfo.getSubCategory());
                         bankStatementDetails.setTag(entry.getKey());
+                        expenseMonth = getExpenseMonthFromDate(bankStatementDetails.getTransactionDate(),Boolean.FALSE);
+                        bankStatementDetails.setExpenseMonth(expenseMonth);
                         break;
                     }
                 }
@@ -69,8 +75,17 @@ public class ClassificationService {
         }
     }
 
+    private String getExpenseMonthFromDate(LocalDate transactionDate, boolean incrementMonth) {
+        LocalDate adjustedDate = incrementMonth ? transactionDate.plusMonths(1) : transactionDate;
+
+        String month = adjustedDate.getMonth().getDisplayName(TextStyle.FULL, Locale.ENGLISH);
+        int year = adjustedDate.getYear();
+
+        return month + year;
+    }
+
     private Boolean checkIfSalaryCredited(String description){
-        List<String> salaryDescriptions = List.of("MODER SOLUTIONS INDIA PVT LTD-SALARY");
+        List<String> salaryDescriptions = Constants.salaryDescipton;
         boolean flag = false;
         for (String desc : salaryDescriptions) {
             if (desc != null && desc.contains(description)) {

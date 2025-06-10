@@ -79,6 +79,7 @@ public class FileParsingService {
                 bankStatementDetailsDto.setCategory(row.getCell(4) == null ? "UNKNOWN" : row.getCell(4).getStringCellValue());
                 bankStatementDetailsDto.setSubCategory(row.getCell(5) == null ? "UNKNOWN" : row.getCell(5).getStringCellValue());
                 bankStatementDetailsDto.setTag(row.getCell(6) == null ? "UNKNOWN" : row.getCell(6).getStringCellValue());
+                bankStatementDetailsDto.setExpenseMonth(row.getCell(7).getStringCellValue());
                 bankStatementDetailsDto.setDebitAmount(row.getCell(7).getNumericCellValue());
                 bankStatementDetailsDto.setCreditAmount(row.getCell(8).getNumericCellValue());
 
@@ -121,9 +122,12 @@ public class FileParsingService {
         headercell.setCellValue("tag");
 
         headercell = header.createCell(7);
-        headercell.setCellValue("Debit Amount");
+        headercell.setCellValue("ExpenseMonth");
 
         headercell = header.createCell(8);
+        headercell.setCellValue("Debit Amount");
+
+        headercell = header.createCell(9);
         headercell.setCellValue("Credit Amount");
         int rowCount = 1;
 

@@ -26,4 +26,5 @@ public class BankStatementDetailsDto {
     private String tag;
     private double debitAmount;
     private double creditAmount;
+    private String expenseMonth;
 }

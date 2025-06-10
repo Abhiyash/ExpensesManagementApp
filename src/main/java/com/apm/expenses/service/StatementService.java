@@ -85,7 +85,7 @@ public class StatementService {
                 if (!newBankStatements.isEmpty()) {
                     //statementDetailsDao.insertStatements(newBankStatements);
                 }
-                System.out.println(bankStatementDetailsList);
+                bankStatementDetailsList.forEach(System.out::println);
             }
             else{
                 List<BankStatementDetailsDto> bankStatementDetailsDtoList = fileParsingService.parseInputFilesXlsx(completeFilePath);
@@ -115,7 +115,7 @@ public class StatementService {
 
         Criteria criteria = Criteria.where("userId").is(userId).and("transactionDate").gte(from).lte(to);
         query.addCriteria(criteria);
-        query.fields().include("id").include("transactionDate").include("description").include("category").include("subCategory").include("debitAmount").include("creditAmount").include("bankAccountNumber").include("tag");
+        query.fields().include("id").include("transactionDate").include("description").include("category").include("subCategory").include("debitAmount").include("creditAmount").include("bankAccountNumber").include("tag").include("expenseMonth");
         return statementDetailsDao.getStatements(query);
     }
 
