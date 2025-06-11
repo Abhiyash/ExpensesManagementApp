@@ -9,5 +9,5 @@ public class Constants {
     public static final String[] HEADERS = { "Date", "Narration","Value Dat","Debit Amount","Credit Amount","Chq/Ref Number","Closing Balance"};
     public static final List<String> categoryName = List.of("Wants","Investments","Needs");
     public static final List<String> nextMonthExpense = List.of("NextMonthExpenses");
-    public static final List<String> salaryDescipton = List.of("MODER SOLUTIONS INDIA PVT LTD-SALARY","ACCENTURE SOLUTIONS PVT LTD");
+    public static final List<String> salaryDescription = List.of("MODER SOLUTIONS INDIA PVT LTD-SALARY","ACCENTURE SOLUTIONS PVT LTD");
 }

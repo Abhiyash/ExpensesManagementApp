@@ -141,8 +141,9 @@ public class FileParsingService {
             row.createCell(4).setCellValue(bankStatementDetailsDto.getCategory());
             row.createCell(5).setCellValue(bankStatementDetailsDto.getSubCategory());
             row.createCell(6).setCellValue(bankStatementDetailsDto.getTag());
-            row.createCell(7).setCellValue(bankStatementDetailsDto.getDebitAmount());
-            row.createCell(8).setCellValue(bankStatementDetailsDto.getCreditAmount());
+            row.createCell(7).setCellValue(bankStatementDetailsDto.getExpenseMonth());
+            row.createCell(8).setCellValue(bankStatementDetailsDto.getDebitAmount());
+            row.createCell(9).setCellValue(bankStatementDetailsDto.getCreditAmount());
         }
 
         String directory = Constants.APP_FILES_PATH + "/" + userId + "/" + Constants.OUTPUT_FILE;

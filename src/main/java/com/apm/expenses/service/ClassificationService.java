@@ -1,6 +1,5 @@
 package com.apm.expenses.service;
 
-import com.apm.expenses.config.MongoConfig;
 import com.apm.expenses.constant.Constants;
 import com.apm.expenses.dao.ClassificationDao;
 import com.apm.expenses.dto.TagInfo;
@@ -8,10 +7,8 @@ import com.apm.expenses.model.BankStatementDetails;
 import com.apm.expenses.model.Category;
 import com.apm.expenses.model.SubCategory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.TextStyle;
@@ -33,17 +30,12 @@ public class ClassificationService {
         );
         Map<String, TagInfo> tagInfoMap = buildTagMap(categoryList);
         Map<String,TagInfo> nextMonthExpensesTagInfoMap = buildTagMap(nextMonthExpenses);
+        Set<String> salaryCreditedSet = new HashSet<>();
         for(BankStatementDetails bankStatementDetails : bankStatementDetailsList){
             String description = bankStatementDetails.getDescription().toLowerCase();
-            String expenseMonth = bankStatementDetails.getTransactionDate().getMonth().toString() + bankStatementDetails.getTransactionDate().getYear();
-
-            Boolean salaryCredited = checkIfSalaryCredited(description);
-            /**TODO
-             * 1. Get the expense month from the transaction date
-             * 2. Check whether description is for salary.
-             * 3. Set salaryCredited Flag to true.
-             * 4. Check if expenses are from expenseForNextMonth. If yes then tag the expense as month+1. If no then continue
-             */
+            String expenseMonth = getExpenseMonthFromDate(bankStatementDetails.getTransactionDate(),Boolean.FALSE);
+            checkIfSalaryDescription(salaryCreditedSet,description,expenseMonth);
+            Boolean salaryCredited = checkIfSalaryCredited(salaryCreditedSet,expenseMonth);
             boolean statementClassified = false;
             if (salaryCredited){
                 for(Map.Entry<String,TagInfo> entry : nextMonthExpensesTagInfoMap.entrySet()){
@@ -72,6 +64,17 @@ public class ClassificationService {
                     }
                 }
             }
+            //System.out.println("Transaction Date :: " + bankStatementDetails.getTransactionDate() + " Description :: " + bankStatementDetails.getDescription() + " Expense Month :: " + bankStatementDetails.getExpenseMonth());
+        }
+    }
+
+    private void checkIfSalaryDescription(Set<String> salaryCreditedSet, String description, String expenseMonth) {
+        List<String> salaryDescriptions = Constants.salaryDescription;
+        boolean flag = false;
+        for (String desc : salaryDescriptions) {
+            if (desc != null && description.toLowerCase().contains(desc.toLowerCase())) {
+                salaryCreditedSet.add(expenseMonth);
+            }
         }
     }
 
@@ -84,14 +87,10 @@ public class ClassificationService {
         return month + year;
     }
 
-    private Boolean checkIfSalaryCredited(String description){
-        List<String> salaryDescriptions = Constants.salaryDescipton;
+    private Boolean checkIfSalaryCredited(Set<String> salaryCredited,String expenseMonth){
         boolean flag = false;
-        for (String desc : salaryDescriptions) {
-            if (desc != null && desc.contains(description)) {
-                flag = true;
-                break;
-            }
+        if (salaryCredited.contains(expenseMonth)){
+            flag = true;
         }
         return flag;
     }

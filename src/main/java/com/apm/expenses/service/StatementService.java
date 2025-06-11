@@ -4,19 +4,14 @@ import com.apm.expenses.dao.ClassificationDao;
 import com.apm.expenses.dao.StatementDetailsDao;
 import com.apm.expenses.dto.BankStatementDetailsDto;
 import com.apm.expenses.model.BankStatementDetails;
-import com.apm.expenses.model.Category;
-import com.apm.expenses.model.SubCategory;
 import com.apm.expenses.utility.ExpensesUtility;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.BulkOperations;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import com.apm.expenses.constant.Constants;
 import org.springframework.util.ObjectUtils;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -62,7 +57,6 @@ public class StatementService {
                 Set<String> refNumbers = bankStatementDetailsList.stream()
                         .map(BankStatementDetails::getRefNumber)
                         .collect(Collectors.toSet());
-                //statementDetailsDao.save(bankStatementDetailsList);
 
                 Query query = new Query(Criteria.where("refNumber").in(refNumbers).and("bankAccountNumber").is(bankAccountNumber).and("userId").is(userId));
                 List<String> existingRefNumbers = statementDetailsDao.fetchStatements(query)
@@ -83,20 +77,17 @@ public class StatementService {
                         })
                         .collect(Collectors.toList());
                 if (!newBankStatements.isEmpty()) {
-                    //statementDetailsDao.insertStatements(newBankStatements);
+                    statementDetailsDao.insertStatements(newBankStatements);
                 }
-                bankStatementDetailsList.forEach(System.out::println);
+                //bankStatementDetailsList.forEach(System.out::println);
             }
             else{
                 List<BankStatementDetailsDto> bankStatementDetailsDtoList = fileParsingService.parseInputFilesXlsx(completeFilePath);
-                //System.out.println("Bank Statement Details " + bankStatementDetailsDtoList);
                 statementDetailsDao.updateStatements(bankStatementDetailsDtoList);
                 classificationDao.updateConfigsForClassification(bankStatementDetailsDtoList);
-
             }
         }
         System.out.println(fileNamesList);
-        //System.out.println(mongoTemplate.getCollectionNames());
         return "SUCCESS";
     }
 

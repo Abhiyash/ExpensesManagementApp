@@ -28,12 +28,6 @@ public class ClassificationDao {
         return mongoTemplate.find(query, Category.class);
     }
 
-    public List<Category> loadConfigsForNextMonthExpenses(){
-        Query query = new Query();
-        query.addCriteria(Criteria.where("name").is("NextMonthExpenses"));
-        return mongoTemplate.find(query, Category.class);
-    }
-
     public void updateConfigsForClassification(List<BankStatementDetailsDto> bankStatementDetailsDtoList ){
         List<Category> categoryList = loadConfigs(Constants.categoryName);
         for(BankStatementDetailsDto bankStatementDetailsDto : bankStatementDetailsDtoList){
@@ -44,33 +38,6 @@ public class ClassificationDao {
             String subCategory = bankStatementDetailsDto.getSubCategory();
             String tag = bankStatementDetailsDto.getTag();
             System.out.println("Category: " + category + " SubCategory: " + subCategory + " Tag: " + tag);
-            /*for (Category categoryItem : categoryList) {
-                if (categoryItem.getName().equals(category)){
-                    List<SubCategory> subCategoryList = categoryItem.getSubCategory();
-                    for (SubCategory subCategoryItem : subCategoryList) {
-                        if (subCategoryItem.getName().equals(subCategory)){
-                            List<String> tagItems = subCategoryItem.getTags();
-                            for (String tagItem : tagItems){
-                                if (!tag.equals(tagItem)){
-                                    tagItems.add(tag);
-                                    //TODO Update MongoDB
-                                    System.out.println("Inserted new tag");
-                                }
-                            }
-                        }
-                        else {
-                            subCategoryList.add(SubCategory.builder().name(subCategory).tags(List.of(tag)).build());
-                            //TODO Update MongoDB
-                            System.out.println("Inserted new Subcategory");
-                        }
-                    }
-                }
-                else{
-                    categoryList.add(Category.builder().name(category).subCategory(List.of(SubCategory.builder().name(subCategory).tags(List.of(tag)).build())).build());
-                    //TODO update MongoDB
-                    System.out.println("Inserted new Category");
-                }
-            }*/
             Query query = new Query(Criteria.where("name").is(category)
                     .and("subCategory.name").is(subCategory));
 
