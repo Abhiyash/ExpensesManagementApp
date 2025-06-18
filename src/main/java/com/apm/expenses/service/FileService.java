@@ -7,6 +7,9 @@ import com.apm.expenses.model.BankStatementDetails;
 import com.apm.expenses.utility.ExpensesUtility;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.NotFileFilter;
+import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,22 +19,23 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.apm.expenses.constant.Constants.HEADERS;
 
 @Service
-public class FileParsingService {
+public class FileService {
 
     @Autowired
     ExpensesUtility expensesUtility;
 
     public List<BankStatementDetails> parseInputFilesTxt(String fileName) {
         List<BankStatementDetails> bankStatementDetailsList = new ArrayList<BankStatementDetails>();
-        //115329700_1727870796358
-        // Abhiyash 115329700_1727870760267
 
         try(Reader reader = new FileReader(fileName);) {
 
@@ -51,7 +55,6 @@ public class FileParsingService {
                 bankStatementDetails.setCategory("");
                 bankStatementDetailsList.add(bankStatementDetails);
             }
-
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -86,7 +89,6 @@ public class FileParsingService {
                 bankStatementDetailsDtoList.add(bankStatementDetailsDto);
             }
             workbook.close();
-                //TODO Rename the files by adding processed suffix and moving to processed folder
         }
         catch(IOException e){
             System.out.println(e.getMessage());
@@ -153,5 +155,58 @@ public class FileParsingService {
         FileOutputStream outputStream = new FileOutputStream(path.toFile());
         workbook.write(outputStream);
         workbook.close();
+    }
+
+    public List<String> getFiles(String directoryPath){
+        File directory = new File(directoryPath);
+
+        // Regex to match _processed_<timestamp>.txt or .xlsx
+        String pattern = "_processed_\\d+\\.(txt|xlsx)";
+
+        // Negate the filter to get files NOT matching the pattern
+        RegexFileFilter processedFileFilter = new RegexFileFilter(pattern);
+        NotFileFilter notProcessedFileFilter = new NotFileFilter(processedFileFilter);
+
+        // List files that do NOT match the processed file pattern
+        Collection<File> allFiles = FileUtils.listFiles(
+                directory,
+                notProcessedFileFilter,
+                null // non-recursive
+        );
+
+        return allFiles.stream().map(File::getName).collect(Collectors.toList());
+    }
+
+    public void renameFile(String filePath){
+        File originalFile = new File(filePath);
+
+        if (!originalFile.exists() || !originalFile.isFile()) {
+            throw new IllegalArgumentException("File does not exist: " + filePath);
+        }
+
+        String originalName = originalFile.getName();
+        String extension = "";
+
+        int lastDot = originalName.lastIndexOf('.');
+        if (lastDot != -1) {
+            extension = originalName.substring(lastDot); // includes the dot (e.g., ".txt")
+        }
+
+        // Format timestamp as yyyyMMddHHmmss
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+
+        // New file name
+        String newName = originalName.substring(0,lastDot) + "_processed_" + timestamp + extension;
+
+        // New file path in same directory
+        File renamedFile = new File(originalFile.getParent(), newName);
+
+        // Rename (move) the file
+        try{
+            Files.move(originalFile.toPath(), renamedFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
     }
 }
