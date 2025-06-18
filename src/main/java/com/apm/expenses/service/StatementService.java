@@ -13,14 +13,10 @@ import com.apm.expenses.constant.Constants;
 import org.springframework.util.ObjectUtils;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 public class StatementService {
@@ -29,7 +25,7 @@ public class StatementService {
     private ExpensesUtility expensesUtility;
 
     @Autowired
-    private FileParsingService fileParsingService;
+    private FileService fileService;
 
     @Autowired
     private ClassificationService classificationService;
@@ -42,14 +38,13 @@ public class StatementService {
 
     public String updateStatement(String userId, String bankAccountNumber) throws IOException {
         final String filesPath = Constants.APP_FILES_PATH + "/" + userId + "/" + Constants.INPUT_FILE;
-        Stream<Path> stream = Files.list(Paths.get(filesPath));
-        List<String> fileNamesList = stream.filter(file -> !Files.isDirectory(file)).map(Path::getFileName).map(Path::toString).toList();
+        List<String> fileNamesList = fileService.getFiles(filesPath);
         for (String fileName : fileNamesList) {
             String completeFilePath = filesPath + "/" + fileName;
             expensesUtility.genrateUUID(fileName);
             System.out.println("Working on " + completeFilePath);
             if (fileName.contains("txt")){
-                List<BankStatementDetails> bankStatementDetailsList = fileParsingService.parseInputFilesTxt(completeFilePath);
+                List<BankStatementDetails> bankStatementDetailsList = fileService.parseInputFilesTxt(completeFilePath);
                 if (!ObjectUtils.isEmpty(bankStatementDetailsList)){
                     classificationService.classify(bankStatementDetailsList);
                 }
@@ -79,13 +74,13 @@ public class StatementService {
                 if (!newBankStatements.isEmpty()) {
                     statementDetailsDao.insertStatements(newBankStatements);
                 }
-                //bankStatementDetailsList.forEach(System.out::println);
             }
             else{
-                List<BankStatementDetailsDto> bankStatementDetailsDtoList = fileParsingService.parseInputFilesXlsx(completeFilePath);
+                List<BankStatementDetailsDto> bankStatementDetailsDtoList = fileService.parseInputFilesXlsx(completeFilePath);
                 statementDetailsDao.updateStatements(bankStatementDetailsDtoList);
                 classificationDao.updateConfigsForClassification(bankStatementDetailsDtoList);
             }
+            fileService.renameFile(completeFilePath);
         }
         System.out.println(fileNamesList);
         return "SUCCESS";
@@ -113,7 +108,7 @@ public class StatementService {
     public String getAndExportStatement(String userId,LocalDate from, LocalDate to) throws IOException {
         List<BankStatementDetailsDto> bankStatementDetailsDtoList = getStatement(userId,from,to);
         System.out.println("bankStatementDetailsDtoList :: " +bankStatementDetailsDtoList);
-        fileParsingService.exportData(bankStatementDetailsDtoList,userId);
+        fileService.exportData(bankStatementDetailsDtoList,userId);
         return "SUCCESS";
     }
 

@@ -42,9 +42,7 @@ public class StatementDetailsDao {
     }
 
     public List<BankStatementDetails> fetchStatements(Query query){
-        List<BankStatementDetails> bankStatementDetailsList = mongoTemplate.find(query, BankStatementDetails.class);
-        System.out.println(bankStatementDetailsList);
-        return bankStatementDetailsList;
+        return mongoTemplate.find(query, BankStatementDetails.class);
     }
 
     public void insertStatements(List<BankStatementDetails> bankStatementDetailsList){
