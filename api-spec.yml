@@ -5,7 +5,55 @@ info:
   version: 1.1.0
 
 paths:
-  /bank-details:
+  # --- AUTHENTICATION ENDPOINTS ---
+  /auth/signup:
+    post:
+      tags: [ Authentication ]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignupRequest'
+      responses:
+        '201':
+          description: User registered successfully
+        '400':
+          description: Username or Email already exists
+
+  /auth/login:
+    post:
+      tags: [ Authentication ]
+      summary: Authenticate user and return JWT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Invalid credentials
+
+  /auth/signout:
+    post:
+      tags: [ Authentication ]
+      summary: Sign out the current user
+      security:
+        - BearerAuth: [ ]
+      responses:
+        '200':
+          description: Successfully signed out
+        '401':
+          description: Unauthorized (Token missing or expired)
+  /bankDetails:
     get:
       summary: Get all bank accounts for a user
       description: Returns a list of all bank accounts associated with a specific userId.
@@ -74,7 +122,55 @@ paths:
           description: Deleted successfully
 
 components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
   schemas:
+    SignupRequest:
+        type: object
+        required: [ username, emailId, password ]
+        properties:
+          username:
+            type: string
+            example: "johndoe"
+          emailId:
+            type: string
+            format: email
+            example: "john@example.com"
+          password:
+            type: string
+            format: password
+            example: "P@ssw0rd123"
+
+    LoginRequest:
+        type: object
+        required: [ username, password ]
+        properties:
+          username:
+            type: string
+            example: "johndoe"
+          password:
+            type: string
+            format: password
+            example: "P@ssw0rd123"
+
+    AuthResponse:
+        type: object
+        properties:
+          token:
+            type: string
+            description: "The JWT token to be used in the Authorization header"
+          type:
+            type: string
+            example: "Bearer"
+          username:
+            type: string
+          userId:
+            type: string
+
     BankDetail:
       type: object
       required: [userId, accountName, accountNumber, bankName, IFSC_Code]
