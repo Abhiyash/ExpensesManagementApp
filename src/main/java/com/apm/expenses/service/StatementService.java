@@ -36,7 +36,8 @@ public class StatementService {
     @Autowired
     private ClassificationDao classificationDao;
 
-    public String updateStatement(String userId, String bankAccountNumber) throws IOException {
+    public String updateStatement(String bankAccountNumber) throws IOException {
+        String userId = expensesUtility.getUserName();
         final String filesPath = Constants.APP_FILES_PATH + "/" + userId + "/" + Constants.INPUT_FILE;
         List<String> fileNamesList = fileService.getFiles(filesPath);
         for (String fileName : fileNamesList) {
@@ -57,7 +58,7 @@ public class StatementService {
                 List<String> existingRefNumbers = statementDetailsDao.fetchStatements(query)
                         .stream()
                         .map(BankStatementDetails::getRefNumber)
-                        .collect(Collectors.toList());
+                        .toList();
 
                 List<BankStatementDetails> newBankStatements = bankStatementDetailsList.stream()
                         .filter(bankStatement -> !existingRefNumbers.contains(bankStatement.getRefNumber()))
@@ -65,7 +66,7 @@ public class StatementService {
                             // Set additional metadata for new records
                             bankStatement.setUserId(userId);
                             bankStatement.setBankAccountNumber(bankAccountNumber);
-                            bankStatement.setCreatedOn(LocalDateTime.now());
+                                bankStatement.setCreatedOn(LocalDateTime.now());
                             bankStatement.setCreatedBy("System");
                             bankStatement.setModifiedOn(LocalDateTime.now());
                             bankStatement.setModifiedBy("System");
@@ -105,7 +106,9 @@ public class StatementService {
         return statementDetailsDao.getStatements(query);
     }
 
-    public String getAndExportStatement(String userId,LocalDate from, LocalDate to) throws IOException {
+    public String getAndExportStatement(LocalDate from, LocalDate to) throws IOException {
+        String userId = expensesUtility.getUserName();
+        System.out.println("UserId :: " + userId);
         List<BankStatementDetailsDto> bankStatementDetailsDtoList = getStatement(userId,from,to);
         System.out.println("bankStatementDetailsDtoList :: " +bankStatementDetailsDtoList);
         fileService.exportData(bankStatementDetailsDtoList,userId);

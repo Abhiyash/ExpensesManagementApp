@@ -4,6 +4,7 @@ import com.apm.expenses.constant.Constants;
 import com.apm.expenses.dao.StatementDetailsDao;
 import com.apm.expenses.dto.BankStatementDetailsDto;
 import com.apm.expenses.dto.TotalDto;
+import com.apm.expenses.utility.ExpensesUtility;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.Image;
@@ -40,10 +41,14 @@ public class ExpensesService {
     @Autowired
     StatementService statementService;
 
-    public List<TotalDto> calculateExpenses(String userId, LocalDate fromDate, LocalDate toDate) {
+    @Autowired
+    ExpensesUtility expensesUtility;
+
+    public List<TotalDto> calculateExpenses(LocalDate fromDate, LocalDate toDate) {
         // TODO
         // 1. Fetch statements
         // 2. Calculate total for category and subcategory
+        String userId = expensesUtility.getUserName();
         try {
             List<BankStatementDetailsDto> bankStatementDetailsDtoList = statementService.getStatement(userId, fromDate,
                     toDate);

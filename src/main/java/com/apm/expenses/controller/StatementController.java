@@ -29,10 +29,9 @@ public class StatementController {
     StatementService statementService;
 
     @PostMapping("/bankstatement")
-    public @ResponseBody String updatebankstatement(@RequestParam String userId, @RequestParam String bankAccountNumber
+    public @ResponseBody String updatebankstatement(@RequestParam String bankAccountNumber
                                                     ) throws IOException {
-        System.out.println("userId = " + userId);
-        statementService.updateStatement(userId,bankAccountNumber);
+        statementService.updateStatement(bankAccountNumber);
         //TODO What will be the values when from and to are not passed.
 
 
@@ -40,10 +39,10 @@ public class StatementController {
     }
 
     @GetMapping("/bankstatement")
-    public @ResponseBody String getbankstatement(@RequestParam String userId,
+    public @ResponseBody String getbankstatement(
                                                  @RequestParam(value = "from", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
                                                  @RequestParam(value = "to", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) throws IOException {
-        statementService.getAndExportStatement(userId, from, to);
+        statementService.getAndExportStatement(from, to);
         return "SUCCESS";
     }
 
@@ -53,7 +52,7 @@ public class StatementController {
     }
 
     @PostMapping("/bankstatement/files")
-    public @ResponseBody String readStatementsFromFile(@RequestParam String userId,
+    public @ResponseBody String readStatementsFromFile(
                                                        @RequestPart("data") String relatedData,
                                                        @RequestPart("files") List<MultipartFile> files) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();

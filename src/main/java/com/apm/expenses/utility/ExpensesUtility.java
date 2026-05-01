@@ -1,10 +1,11 @@
 package com.apm.expenses.utility;
 
+import com.apm.expenses.dto.auth.UserPrinciple;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -24,4 +25,12 @@ public class ExpensesUtility {
         return String.valueOf(System.currentTimeMillis());
     }
 
+    public String getUserName(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.isAuthenticated()) {
+            UserPrinciple userPrinciple = (UserPrinciple) authentication.getPrincipal();
+            return userPrinciple.getUsername();
+        }
+        throw new RuntimeException("User not authenticated");
+    }
 }
