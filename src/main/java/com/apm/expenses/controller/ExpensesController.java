@@ -18,10 +18,9 @@ public class ExpensesController {
     private ExpensesService expensesService;
 
     @GetMapping("/expenses")
-    public @ResponseBody String calculateExpenses(@RequestParam String userId,
-                                           @RequestParam(value = "from", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+    public @ResponseBody String calculateExpenses(@RequestParam(value = "from", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
                                            @RequestParam(value = "to", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) throws IOException {
-        expensesService.calculateExpenses(userId, from, to);
+        expensesService.calculateExpenses(from, to);
         return "SUCCESS";
     }
 }

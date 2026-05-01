@@ -2,6 +2,7 @@ package com.apm.expenses.service;
 
 import com.apm.expenses.dto.BankStatementDetailsDto;
 import com.apm.expenses.dto.TotalDto;
+import com.apm.expenses.utility.ExpensesUtility;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -22,6 +23,9 @@ public class ExpensesServiceTest {
 
     @InjectMocks
     private ExpensesService expensesService;
+
+    @InjectMocks
+    private ExpensesUtility expensesUtility;
 
     @Test
     public void testCalculateExpenses_Reproduction() throws Exception {
@@ -44,7 +48,7 @@ public class ExpensesServiceTest {
         when(statementService.getStatement(userId, from, to)).thenReturn(List.of(dto1, dto2));
 
         // We expect success now
-        List<TotalDto> result = expensesService.calculateExpenses(userId, from, to);
+        List<TotalDto> result = expensesService.calculateExpenses(from, to);
         assertNotNull(result);
         assertFalse(result.isEmpty());
         // 2 categories (Food) + 2 subcategories (Groceries, Dining) = 4 entries?
